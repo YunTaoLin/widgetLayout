@@ -1,14 +1,20 @@
 <template>
   <div id="app">
     <div class="container-fluid">
-      <div class="row">
-        <div class="col-3">
+      <div class="wrapping">
+        <div class="widget">
           <!-- <button type="button" @click="addNewWidget()">Add Widget</button>
 
           <p>{{ info }}</p> -->
-          <div class="subService"></div>
+          <div v-for="(subService, index) in subServiceList" :key="index">
+            <h2 v-if="index % 3 == 0">{{ subService.type }}</h2>
+            <div
+              :class="`subService_${index}`"
+              :style="`width:${(subService.minW / 4) * 100}%`"
+            ></div>
+          </div>
         </div>
-        <div class="col-9">
+        <div class="dashboard">
           <div class="grid-stack"></div>
         </div>
       </div>
@@ -24,15 +30,21 @@ export default {
   data() {
     // Reference to the GridStack instance to access it later
     return {
-      subServiceGrid: null,
+      subServiceGrid: {},
       grid: undefined,
       count: 0,
       info: "",
       timerId: undefined,
-      subService: [
-        { x: 0, y: 0, w: 4, h: 1, minW: 4, content: "IM - 4*1" },
-        { x: 0, y: 1, w: 2, h: 1, minW: 2, content: "IM - 2*1" },
-        { x: 0, y: 3, w: 2, h: 2, minW: 2, content: "IM - 2*2" },
+      subServiceList: [
+        { x: 0, y: 0, w: 4, h: 1, minW: 4, content: "IM - 4*1", type: "IM" },
+        { x: 0, y: 1, w: 2, h: 1, minW: 2, content: "IM - 2*1", type: "IM" },
+        { x: 0, y: 2, w: 2, h: 2, minW: 2, content: "IM - 2*2", type: "IM" },
+        { x: 0, y: 0, w: 4, h: 1, minW: 4, content: "DR - 4*1", type: "DR" },
+        { x: 0, y: 1, w: 2, h: 1, minW: 2, content: "DR - 2*1", type: "DR" },
+        { x: 0, y: 2, w: 2, h: 2, minW: 2, content: "DR - 2*2", type: "DR" },
+        { x: 0, y: 0, w: 4, h: 1, minW: 4, content: "DC - 4*1", type: "DC" },
+        { x: 0, y: 1, w: 2, h: 1, minW: 2, content: "DC - 2*1", type: "DC" },
+        { x: 0, y: 2, w: 2, h: 2, minW: 2, content: "DC - 2*2", type: "DC" },
       ],
     };
   },
@@ -54,8 +66,8 @@ export default {
     this.grid = GridStack.init({
       column: 4,
       float: true,
-      cellHeight: "200px",
-      cellWidth: "200px",
+      cellHeight: "170px",
+      cellWidth: "170px",
       minRow: 4,
       maxRow: 4,
       disableResize: true,
@@ -63,31 +75,41 @@ export default {
       margin: 0,
       alwaysShowResizeHandle: false,
       disableOneColumnMode: true,
+      dragInOptions: { appendTo: "body", helper: "clone" },
+      removable: true,
     });
 
-    //目前服務
-    this.subServiceGrid = GridStack.init(
-      {
-        column: 4,
-        float: true,
-        cellHeight: "100px",
-        // cellWidth: "100px",
-        minRow: 1,
-        maxRow: 5,
-        disableResize: true,
-        acceptWidgets: false,
-        alwaysShowResizeHandle: false,
-        disableOneColumnMode: true,
-        // margin: 0,
-      },
-      ".subService"
-    );
-    this.initWidget();
-    // Use an arrow function so that `this` is bound to the Vue instance. Alternatively, use a custom Vue directive on the `.grid-stack` container element: https://vuejs.org/v2/guide/custom-directive.html
-    // this.grid.on("dragstop", (event, element) => {
-    //   const node = element.gridstackNode;
-    //   // `this` will only access your Vue instance if you used an arrow function, otherwise `this` binds to window scope. see https://hacks.mozilla.org/2015/06/es6-in-depth-arrow-functions/
-    //   this.info = `you just dragged node #${node.id} to ${node.x},${node.y} – good job!`;
+    //子服務
+    this.subServiceList.forEach((subService, index) => {
+      this.subServiceGrid[`subService_${index}`] = GridStack.init(
+        {
+          column: this.subServiceList[index].minW,
+          float: true,
+          cellHeight: "60px",
+          // cellWidth: "100px",
+          minRow: this.subServiceList[index].h,
+          maxRow: this.subServiceList[index].h,
+          disableResize: true,
+          acceptWidgets: false,
+          alwaysShowResizeHandle: false,
+          disableOneColumnMode: true,
+          margin: 0,
+          itemClass: subService.type,
+          dragInOptions: { appendTo: "body", helper: "clone" },
+        },
+        `.subService_${index}`
+      );
+      this.initWidget(index);
+      this.subServiceGrid[`subService_${index}`].on("dragstart", () => {
+        this.initWidget(index);
+      });
+    });
+
+    //掛勾拖動
+    // this.grid.setupDragIn({
+    //   dragInOptions: {
+    //     helper: "clone",
+    //   },
     // });
   },
   methods: {
@@ -96,12 +118,10 @@ export default {
     //   node.id = node.content = String(this.count++);
     //   this.grid.addWidget(node);
     // },
-    initWidget() {
-      this.subService.forEach((node, i) => {
-        node.id = i++;
-        console.log("node", node);
-        this.subServiceGrid.addWidget(node);
-      });
+    initWidget(index) {
+      let node = this.subServiceList[index];
+      node.id = index + 1;
+      this.subServiceGrid[`subService_${index}`].addWidget(node);
     },
   },
 };
@@ -120,42 +140,50 @@ body {
 #app {
   padding: 40px;
 }
-.btn-primary {
-  color: #fff;
-  background-color: #007bff;
-}
 
-.btn {
-  display: inline-block;
-  padding: 0.375rem 0.75rem;
-  line-height: 1.5;
-  border-radius: 0.25rem;
-}
-
-a {
-  text-decoration: none;
-}
-
-h1 {
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
+.wrapping {
+  width: 100%;
+  display: flex;
+  .widget {
+    width: 240px;
+    > div h2 {
+      margin-top: 40px;
+    }
+    > div:first-of-type h2 {
+      margin-top: 0;
+    }
+  }
+  .dashboard {
+    flex-grow: 1;
+    padding: 0 120px;
+  }
 }
 
 .grid-stack {
   background: #ddd;
-  height: 80vh;
   border: 1px solid #000;
+  margin-bottom: 12px;
+}
+
+.grid-stack-item {
+  text-align: center;
+  color: #fff;
+  border: 1px solid #000;
+  &.IM {
+    background-color: #3e6b7e;
+  }
+  &.DR {
+    background-color: #fdb328;
+  }
+  &.DC {
+    background-color: #85a894;
+  }
 }
 
 .grid-stack-item-content {
-  color: #2c3e50;
-  text-align: center;
-  background-color: #18bc9c;
   display: flex;
   justify-content: center;
   align-items: center;
-  color: #fff;
-  border: 1px solid #000;
 }
 
 .grid-stack-item-removing {
@@ -202,9 +230,4 @@ h1 {
 }
 
 //subService
-
-.subService {
-  height: 80vh;
-  border: 1px solid #000;
-}
 </style>

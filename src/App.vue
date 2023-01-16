@@ -2,17 +2,46 @@
   <div id="app">
     <div class="container-fluid">
       <div class="wrapping">
-        <div class="widget">
-          <!-- <button type="button" @click="addNewWidget()">Add Widget</button>
-
-          <p>{{ info }}</p> -->
-          <div v-for="(subService, index) in subServiceList" :key="index">
-            <h2 v-if="index % 3 == 0">{{ subService.type }}</h2>
+        <div class="widget accordion" role="tablist">
+          <h2 v-b-toggle="'IM'" class="tab IM mb-3">IM</h2>
+          <!-- Element to collapse -->
+          <b-collapse id="IM" accordion="my-accordion">
             <div
-              :class="`subService_${index}`"
-              :style="`width:${(subService.minW / 4) * 100}%`"
-            ></div>
-          </div>
+              v-for="(subService, index) in subServiceList.slice(0, 3)"
+              :key="index"
+            >
+              <div
+                :class="`subService_${index}`"
+                :style="`width:${(subService.minW / 4) * 100}%`"
+              ></div>
+            </div>
+          </b-collapse>
+
+          <h2 v-b-toggle="'DR'" class="tab DR mb-3 mt-5">DR</h2>
+          <b-collapse id="DR" accordion="my-accordion">
+            <div
+              v-for="(subService, index) in subServiceList.slice(3, 6)"
+              :key="index + 3"
+            >
+              <div
+                :class="`subService_${index + 3}`"
+                :style="`width:${(subService.minW / 4) * 100}%`"
+              ></div>
+            </div>
+          </b-collapse>
+
+          <h2 v-b-toggle="'DC'" class="tab DC mb-3 mt-5">DC</h2>
+          <b-collapse id="DC" accordion="my-accordion">
+            <div
+              v-for="(subService, index) in subServiceList.slice(6, 9)"
+              :key="index + 6"
+            >
+              <div
+                :class="`subService_${index + 6}`"
+                :style="`width:${(subService.minW / 4) * 100}%`"
+              ></div>
+            </div>
+          </b-collapse>
         </div>
         <div class="dashboard">
           <div class="grid-stack"></div>
@@ -146,6 +175,8 @@ body {
   display: flex;
   .widget {
     width: 240px;
+    display: flex;
+    flex-direction: column;
     > div h2 {
       margin-top: 40px;
     }
@@ -165,10 +196,29 @@ body {
   margin-bottom: 12px;
 }
 
+.tab {
+  font-weight: 800;
+  &.IM,
+  &.IM:hover {
+    color: #3e6b7e;
+    border-bottom: 3px solid #3e6b7e;
+  }
+  &.DR,
+  &.DR:hover {
+    color: #fdb328;
+    border-bottom: 3px solid #fdb328;
+  }
+  &.DC,
+  &.DC:hover {
+    color: #EB6C93;
+    border-bottom: 3px solid #EB6C93;
+  }
+}
 .grid-stack-item {
   text-align: center;
   color: #fff;
   border: 1px solid #000;
+  cursor: pointer;
   &.IM {
     background-color: #3e6b7e;
   }
@@ -176,7 +226,7 @@ body {
     background-color: #fdb328;
   }
   &.DC {
-    background-color: #85a894;
+    background-color: #EB6C93;
   }
 }
 
